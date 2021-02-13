@@ -1,0 +1,89 @@
+#Problem 4.11
+''' Apply Numerov Algorithm to solve u"(x)=-4*pi^(2) u(x) with inital conditions
+    u(0)=1 and u'(0)=0 then check it with 4th order Runge-Kutta'''
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+u_0=1
+u_first_der=0
+
+
+
+def numerov_method(u_0,u_1,x_0,x_final,delta_x):
+    k=2*math.pi
+    u=[u_0,u_1]
+    x=[x_0,delta_x]
+    x_2=x[1]
+    while x_2<=x_final:
+        u_2=( 2*(1-((5)/(12))*(delta_x**2)*(k**2))*u_1 - (1+((1)/(12))*(delta_x**2)*(k**2))*u_0)/( 1 + ((1)/(12))*delta_x**2*(k**2) )
+        u_0=u_1
+        u_1=u_2
+        x_2=x_2+delta_x
+        x.append(x_2)
+        u.append(u_2)
+    return x,u
+
+
+def runge_kutta_4_second_order(F,x,y,p,x_final,h=0.05):
+    p_data=[p]
+    y_data=[y]
+    x_data=[x]
+
+    while x<x_final:
+        j1=h*F(x,y,p)
+        k1=h*p
+
+        j2=h*F(x+h/2,y+k1/2,p+j1/2)
+        k2=h*(p+j1/2)
+
+        j3=h*F(x+h/2,y+k2/2,p+j2/2)
+        k3=h*(p+j2/2)
+
+        j4=h*F(x+h,y+k3,p+j3)
+        k4=h*(p+j3)
+
+        p=p+(1/6)*(j1+2*j2+2*j3+j4)
+        p_data.append(p)
+        y=y+(1/6)*(k1+2*k2+2*k3+k4)
+        y_data.append(y)
+        x=x+h
+        x_data.append(x)
+
+    return x_data,y_data,p_data
+
+def F(x,y,p):
+    return -4 * math.pi**2 * y
+
+#==================Analytical part===========================================
+def analitic(x):
+    ''' This function contains analytical solution of given second order ODE.'''
+    C1=1/2
+    C2=1/2
+    return C1*math.e**(-2j*math.pi *x )+C2*math.e**(2j*math.pi *x )
+
+x_data=np.arange(0,1,0.05)
+y_data=analitic(x_data)
+#============================================================================
+
+
+x_rungekutaa,u_rungekutaa,u_der_rungekutta=runge_kutta_4_second_order(F,0,1,0,1,0.05)
+x_numerov,u_numerov=numerov_method(1,u_rungekutaa[1],0,1,0.05)
+
+
+#Graphicing by matplotlib.pyplot
+fig, ax = plt.subplots()
+
+ax.grid(True, which='both')
+ax.axhline(y=0, color='k')
+ax.axvline(x=0, color='k')
+
+plt.xlabel("x domain",fontsize=12)
+plt.ylabel("u(x)",fontsize=12)
+
+plt.plot(x_numerov,u_numerov,color='blue')
+plt.scatter(x_data,y_data,color='red') # analytical plot
+plt.plot(x_rungekutaa,u_rungekutaa,color='green')
+
+plt.show()
